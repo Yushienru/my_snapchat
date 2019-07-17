@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {View, Text, AsyncStorage, TouchableOpacity, Image, Picker, TextInput} from 'react-native';
 import Constants from 'expo-constants'
-import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import styles from '../constants/FormStyle';
@@ -49,51 +48,40 @@ class Home extends Component {
                 console.log(res.data);
                 this.setState({time: 10, dest: 'default', image: null})
             })
-            // .catch(err => {
-            //     console.log(err.response.data);
-            // })
+            .catch(err => {
+                console.log(err.response.data);
+            })
         }
     }
 
     async componentDidMount() {
         const newToken = await AsyncStorage.getItem("token");
         this.setState({token: newToken});
-        this.getPermissionAsync();
+        // this.getPermissionAsync();
         this.getUsers();
     }
 
     getUsers = async () => {
-         axios.get('https://10.18.207.201:8080/all', {
+        const userList = await axios.get('http://10.18.207.186:8080/all', {
             headers: {
                 token: this.state.token
-            },
-            email: this.state.email
-        })
+            }
+        });
         
-        console.log('eeeeeee')
-        
-        .then(res => {
-            console.log('aaaaaaa')
-            AsyncStorage.setItem("token", res.data.email);
-            this.props.navigation.navigate('Home', {email: res.data.email});
-        })
-        .catch(err => {
-            console.log('error')
-            this.setState({errors: err.response.data.data});
-            console.log(errors);
-        })
+        this.setState({usersList: userList.data})
+        console.log(this.state.usersList);
     }
         
        
 
-    getPermissionAsync = async () => {
-      if (Constants.platform.ios) {
-        const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
-        if (status !== 'granted') {
-          alert('Sorry, we need camera roll permissions to make this work!');
-        }
-      }
-    }
+    // getPermissionAsync = async () => {
+    //   if (Constants.platform.ios) {
+    //     const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+    //     if (status !== 'granted') {
+    //       alert('Sorry, we need camera roll permissions to make this work!');
+    //     }
+    //   }
+    // }
 
     _pickImage = async () => {
       let result = await ImagePicker.launchImageLibraryAsync({
@@ -121,7 +109,7 @@ class Home extends Component {
             <View style={{padding: 20}}>
                 <Image source={{ uri: this.state.image.uri }} style={{ width: 200, height: 200 }} />
                 <Picker selectedValue={this.state.dest} style={{height: 20, width: 300}}
-                    onValueChange={(itemValue, itemIndex) => this.setState({dest: itemValue})}>
+                    onValueChange={(itemValue) => this.setState({dest: itemValue})}>
                     <Picker.Item label="Sélectionnez un destinataire" value="default" />
                     {this.state.usersList.map((data, index) =>
                         <Picker.Item key={index} label={data.email} value={data.email} />

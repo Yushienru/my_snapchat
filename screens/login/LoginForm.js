@@ -50,7 +50,7 @@ class LoginForm extends Component {
 				this.props.navigation.navigate('Home', {token: res.data.token});
 			})
 			.catch(err => {
-				this.setState({errors: err.response.data.data});
+				this.setState({errors: err.response.data});
 				console.log(errors);
 			})
 		}
